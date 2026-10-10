@@ -3,12 +3,14 @@
   SITE CONTENT — edit this file to update the portfolio.
   ============================================================
 
-  Adding photos to a project:
+  Photo of yourself (landing + About page):
+    Put the file in assets/img/ and set  portrait: 'assets/img/me.jpg'
+
+  Project photos (3 per project):
     1. Put image files in  assets/img/<project-folder>/
-    2. Add them to that project's `images` list below:
+    2. Replace the placeholder .svg paths in that project's `images` list:
          { src: 'assets/img/armor/look-01.jpg', caption: 'Look 01, front' }
-    3. Optional: `wide: true` makes an image span the full width.
-    4. The first image (or `cover`) is used on the home page.
+    3. The first image is the large cover; images 2 and 3 sit side by side.
 
   Adding a new project: copy one { ... } block in `projects`,
   give it a unique `slug` (used in the URL, e.g. #/work/my-project).
@@ -27,10 +29,7 @@ window.SITE = {
     // { label: 'Instagram', href: 'https://instagram.com/...' },
   ],
 
-  // Put a PDF at this path to show a "Download CV" button. Leave '' to hide.
-  cvPdf: '',
-
-  // Put a photo at this path to show it on the About page. Leave '' for none.
+  // Photo of yourself. Leave '' to show the monogram placeholder.
   portrait: '',
 
   intro:
@@ -40,6 +39,12 @@ window.SITE = {
   quote: {
     text: 'The ultimate hidden truth of the world is that it is something that we make, and could just as easily make differently.',
     author: 'David Graeber'
+  },
+
+  // Names shown for each discipline in the table of contents.
+  disciplineNames: {
+    Clothing: 'Clothing Design',
+    Architecture: 'Architecture'
   },
 
   about: {
@@ -57,95 +62,125 @@ window.SITE = {
     ]
   },
 
-  cv: [
+  experience: [
     {
-      heading: 'Education',
-      items: [
-        { title: 'Parsons School of Design', meta: 'New York City', note: 'Design' }
+      org: 'Sidste Mole & Sidste Skole',
+      role: 'Creative Collective Volunteer',
+      location: 'Copenhagen, Denmark',
+      date: '2026'
+    },
+    {
+      org: 'Pa Den Anden Side',
+      role: 'Exhibition and Artist Support Volunteer',
+      location: 'Vestamon, Denmark',
+      date: '2026'
+    },
+    {
+      org: 'Watt Pictures',
+      role: 'Production Intern',
+      location: 'New York, NY',
+      date: 'January 2025 – May 2025'
+    },
+    {
+      org: 'Hirshhorn Museum and Sculpture Garden, The Smithsonian',
+      role: 'Intern',
+      location: 'Washington, DC',
+      roles: [
+        { title: 'Teen Council Intern, ARTLAB', date: 'August 2021 – June 2023' },
+        { title: 'Rep My City Intern', date: 'August 2020 – June 2021' }
       ]
     },
     {
-      heading: 'Areas of Practice',
-      items: [
-        { title: 'Clothing Design' },
-        { title: 'Architecture & Spatial Exploration' },
-        { title: 'Conceptual Design' },
-        { title: 'Form & Material Studies' }
-      ]
-    },
-    {
-      heading: 'Selected Projects',
-      items: [
-        { title: 'Armor as Everyday Fashion', meta: 'Clothing' },
-        { title: 'Shoulder Pads', meta: 'Clothing' },
-        { title: 'The Sculptor’s Rest', meta: 'Architecture' }
-      ]
+      org: 'Camp Anokijig',
+      role: 'Volunteer Camp Counselor & Store Manager',
+      location: 'Plymouth, Wisconsin',
+      date: 'Summers 2019 – 2022'
     }
   ],
 
+  accomplishments: [
+    {
+      title: '“First Things” Parsons Exhibition',
+      date: 'February 2024',
+      text: 'My sculpture was selected for the first ever Parsons First-Year Student Exhibition, ' +
+            'showcased at the Aronson Gallery and the Anna-Maria and Stephen Kellen Gallery.'
+    }
+  ],
+
+  // Every project uses the same layout: keywords, title, subtitle,
+  // credit line, summary, and three images.
   projects: [
     {
       slug: 'armor',
       title: 'Armor as Everyday Fashion',
       discipline: 'Clothing',
-      year: '',          // e.g. '2025'
-      type: 'Individual project',
-      tags: ['Protection', 'Structure', 'Silhouette'],
+      subtitle: 'To let people exist freely, without constantly looking over their shoulder.',
+      credit: ['Parsons School of Design', 'Integrated Design Studio 2', 'Prof. Daniela Jacobs', '2025'],
+      keywords: ['Fashion', 'Photography', 'Adobe Premiere Pro', 'Jewelry Design'],
       note: 'protection as expression',
       paper: 'pattern',
-      summary: 'What would it mean to dress for protection every day?',
-      description: [
-        'Armor as Everyday Fashion explores the relationship between protection, identity and wearable design.',
-        'The project considers how elements traditionally associated with armor — plates, overlaps, ' +
-        'reinforced edges — can be translated into the language of everyday clothing, structure and silhouette.'
+      summary: [
+        'This project explored how individuals can protect themselves amid growing mistrust in the police. ' +
+        'I imagined a world where fashion and protection coexist, allowing people to feel safe through what they wear.',
+        'Beginning with a mood board, I developed a visual universe inspired by Ancient Egyptian protective symbols ' +
+        'and everyday accessories, such as rings, headscarves, and necklaces. These references informed a collection ' +
+        'of wearable pieces that reimagine protection through personal style.',
+        'The final pieces were presented through an animated-style advertisement, illustrating their function and ' +
+        'bringing the imagined world to life.'
       ],
       images: [
-        { src: 'assets/img/armor/plate-01.svg', caption: 'Plate study — protection', wide: true },
-        { src: 'assets/img/armor/plate-02.svg', caption: 'Overlap & articulation' },
-        { src: 'assets/img/armor/plate-03.svg', caption: 'Pattern pieces, cut 2' }
+        { src: 'assets/img/armor/plate-01.svg', caption: 'Image 01 — replace with photo' },
+        { src: 'assets/img/armor/plate-02.svg', caption: 'Image 02 — replace with photo' },
+        { src: 'assets/img/armor/plate-03.svg', caption: 'Image 03 — replace with photo' }
       ]
     },
     {
       slug: 'shoulders',
       title: 'Shoulder Pads',
       discipline: 'Clothing',
-      year: '',          // e.g. '2025'
-      type: 'Individual project',
-      tags: ['Volume', 'Form', 'Body'],
+      subtitle: 'Unisex garment aimed to release tension.',
+      credit: ['Parsons School of Design', 'Integrated Design Studio 3', 'Prof. Daniela Jacobs', '2025'],
+      keywords: ['Fashion', 'Photography', 'Modular'],
       note: 'form follows feeling',
       paper: 'pattern',
-      summary: 'The shoulder as a sculptural space.',
-      description: [
-        'Shoulder Pads is a design study investigating the shoulder as a sculptural space.',
-        'The work explores exaggerated volume, silhouette, and the shifting relationship between ' +
-        'a garment and the body underneath it.'
+      summary: [
+        'Building on my exploration of armor as wearable garments, this project focused on designing for the needs ' +
+        'of others. Through a study of body tension among my peers, I identified the shoulders as a key area of focus.',
+        'Inspired by football pads and traditional corsets, I created a leather garment that challenges ideas of ' +
+        'masculinity, femininity, strength, and delicacy. Using muslin draping and leather construction, I explored ' +
+        'the relationship between protection and constraint while challenging myself to work with a new material.',
+        'Designed to adjust to different body sizes, the final piece also considers sustainability by encouraging ' +
+        'versatility and reducing the need for new clothing.'
       ],
       images: [
-        { src: 'assets/img/shoulders/plate-01.svg', caption: 'Volume study 01', wide: true },
-        { src: 'assets/img/shoulders/plate-02.svg', caption: 'Volume study 02' },
-        { src: 'assets/img/shoulders/plate-03.svg', caption: 'Silhouette, front & side' }
+        { src: 'assets/img/shoulders/plate-01.svg', caption: 'Image 01 — replace with photo' },
+        { src: 'assets/img/shoulders/plate-02.svg', caption: 'Image 02 — replace with photo' },
+        { src: 'assets/img/shoulders/plate-03.svg', caption: 'Image 03 — replace with photo' }
       ]
     },
     {
       slug: 'sculptors-rest',
       title: 'The Sculptor’s Rest',
       discipline: 'Architecture',
-      year: '',          // e.g. '2025'
-      type: 'Studio project',
-      tags: ['Studio', 'Workshop', 'Gallery'],
+      subtitle: 'Transforming the Neo Folklore Chair by Rasmus Baekkel from an object into a space.',
+      credit: ['DIS — Study Abroad in Denmark', 'Interior Architecture Studio', 'Prof. Tina Midtgaard', '2026'],
+      keywords: ['Architecture', 'Interior Design', 'Prototyping'],
       note: 'space for making',
       paper: 'drafting',
-      summary: 'A place to make, show, and rest.',
-      description: [
-        'The Sculptor’s Rest is an exploration of architecture as creative infrastructure — ' +
-        'a building organised around the rhythm of an artist’s day.',
-        'Studio, workshop, gallery and a quiet place to rest are arranged so that making and ' +
-        'showing work sit side by side, connected by light and circulation.'
+      summary: [
+        'Based at the Church of the Holy Spirit in Copenhagen, this project explored how to translate a chair from ' +
+        'the Chair Makers Exhibition into a spatial installation.',
+        'Inspired by the chair’s craftsmanship, curves, and blend of Classicism and Modernism, I designed an immersive ' +
+        'wooden structure featuring a Modernist-inspired conversation pit and curved entrances that create an illusion ' +
+        'of a flat wall.',
+        'As my first Interior Architecture project, it introduced me to spatial design through conceptual drawings, ' +
+        'architectural plans, and a hand-built 1:20 scale model. The project explored how to reinterpret an existing ' +
+        'design while preserving its original character and visual language.'
       ],
       images: [
-        { src: 'assets/img/sculptors-rest/plate-01.svg', caption: 'Elevation', wide: true },
-        { src: 'assets/img/sculptors-rest/plate-02.svg', caption: 'Ground floor plan, 1:100' },
-        { src: 'assets/img/sculptors-rest/plate-03.svg', caption: 'Section A–A' }
+        { src: 'assets/img/sculptors-rest/plate-01.svg', caption: 'Image 01 — replace with photo' },
+        { src: 'assets/img/sculptors-rest/plate-02.svg', caption: 'Image 02 — replace with photo' },
+        { src: 'assets/img/sculptors-rest/plate-03.svg', caption: 'Image 03 — replace with photo' }
       ]
     }
   ]

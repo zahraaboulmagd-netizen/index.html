@@ -1,9 +1,11 @@
 /*
   Portfolio app — renders views from content.js.
   Routes (hash-based so GitHub Pages needs no server config):
-    #/              home + selected works
-    #/work/<slug>   project page
-    #/about  #/cv  #/contact
+    #/                landing + table of contents
+    #/work            all projects
+    #/clothing        projects in one discipline (any discipline, lowercased)
+    #/work/<slug>     project page
+    #/about  #/experience  #/contact
 */
 (function () {
   'use strict';
@@ -20,84 +22,114 @@
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
   const pad = (n) => String(n).padStart(2, '0');
-  const projectNum = (i) => String(i + 1).padStart(3, '0');
-  const coverOf = (p) => p.cover || (p.images[0] && p.images[0].src) || '';
+  const projectNum = (p) => String(S.projects.indexOf(p) + 1).padStart(3, '0');
   const tapes = ['tl tr', 'tc', 'tl', 'tr', 'tc'];
   const tapeHtml = (i) => tapes[i % tapes.length].split(' ').map((t) => `<span class="tape ${t}"></span>`).join('');
   const tilt = (i) => [-1.4, 1.2, -0.6, 1.6, -1][i % 5] + 'deg';
   const disciplines = [...new Set(S.projects.map((p) => p.discipline))];
+  const discName = (d) => (S.disciplineNames && S.disciplineNames[d]) || d;
+  const discSlug = (d) => d.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
   function topline(left, right) {
     return `<div class="topline mono"><span>${left}</span><span>${right}</span></div>`;
   }
 
+  function portraitFrame(i) {
+    const inner = S.portrait
+      ? `<img src="${esc(S.portrait)}" alt="Portrait of ${esc(S.name)}">`
+      : `<div class="portrait-empty" aria-hidden="true">Z<span>A</span>M</div>`;
+    return `<div class="frame">${tapeHtml(i)}<div class="frame-img">${inner}</div></div>`;
+  }
+
   /* ---------- views ---------- */
 
   function viewHome() {
-    const cards = S.projects.map((p, i) => `
-      <a class="work-card reveal" href="#/work/${esc(p.slug)}" data-discipline="${esc(p.discipline)}">
+    // Table of contents: About, one entry per discipline (with its projects), Experience, Contact.
+    const entries = [
+      { href: '#/about', label: 'About' },
+      ...disciplines.map((d) => ({
+        href: '#/' + discSlug(d),
+        label: discName(d),
+        children: S.projects.filter((p) => p.discipline === d)
+      })),
+      { href: '#/experience', label: 'Experience' },
+      { href: '#/contact', label: 'Contact' }
+    ];
+    const toc = entries.map((e, i) => `
+      <li>
+        <a class="toc-link" href="${e.href}">
+          <span class="mono toc-num">${pad(i + 1)}</span>
+          <span class="toc-label">${esc(e.label)}</span>
+          <span class="toc-arrow" aria-hidden="true">→</span>
+        </a>
+        ${e.children ? `<ul class="toc-sub">${e.children.map((p) =>
+          `<li><a href="#/work/${esc(p.slug)}">${esc(p.title)}</a></li>`).join('')}</ul>` : ''}
+      </li>`).join('');
+
+    return `
+      <section class="wrap landing">
+        ${topline('Portfolio / Selected Works', esc(S.location) + ' — NY')}
+        <div class="landing-grid">
+          <div class="landing-main">
+            <h1 class="hero-title" aria-label="${esc(S.name)}">
+              <span class="line"><span>${esc(S.firstName)}</span></span>
+              <span class="line"><span>${esc(S.lastName)}<span class="asterisk" aria-hidden="true">✳</span></span></span>
+            </h1>
+            <p class="hand hero-note">design, objects, spaces &amp; everything in between ↘</p>
+            <div class="landing-intro">
+              <div class="portrait landing-portrait">${portraitFrame(1)}</div>
+              <div>
+                <p class="hero-intro">${esc(S.intro)}</p>
+                ${S.quote ? `
+                <figure class="landing-quote">
+                  <blockquote>“${esc(S.quote.text)}”</blockquote>
+                  <figcaption class="hand">— ${esc(S.quote.author)}</figcaption>
+                </figure>` : ''}
+              </div>
+            </div>
+          </div>
+          <nav class="toc" aria-label="Table of contents">
+            <h2 class="mono toc-title">Table of Contents</h2>
+            <ol>${toc}</ol>
+            <p class="hand toc-note">choose where to wander ↗</p>
+          </nav>
+        </div>
+      </section>`;
+  }
+
+  function viewWork(discipline) {
+    const list = discipline ? S.projects.filter((p) => p.discipline === discipline) : S.projects;
+    const title = discipline ? discName(discipline) : 'Selected Works';
+    const tabs = [['#/work', 'All', !discipline], ...disciplines.map((d) => ['#/' + discSlug(d), discName(d), d === discipline])];
+    const cards = list.map((p, i) => `
+      <a class="work-card reveal" href="#/work/${esc(p.slug)}">
         <div class="frame" style="--tilt:${tilt(i)}">
           ${tapeHtml(i)}
-          <div class="frame-img"><img src="${esc(coverOf(p))}" alt="${esc(p.title)}" loading="${i < 2 ? 'eager' : 'lazy'}"></div>
+          <div class="frame-img"><img src="${esc(p.images[0] && p.images[0].src)}" alt="${esc(p.title)}" loading="${i < 2 ? 'eager' : 'lazy'}"></div>
         </div>
         <div class="work-info">
-          <span class="mono work-num">${projectNum(i)}</span>
+          <span class="mono work-num">${projectNum(p)}</span>
           <h3 class="work-title">${esc(p.title)}</h3>
           <span class="work-arrow" aria-hidden="true">↗</span>
-          <span class="mono work-sub">${esc(p.discipline)}${p.year ? ' — ' + esc(p.year) : ''}</span>
-          ${p.summary ? `<p class="work-summary">${esc(p.summary)}</p>` : ''}
+          <span class="mono work-sub">${esc(discName(p.discipline))}${p.credit ? ' — ' + esc(p.credit[p.credit.length - 1]) : ''}</span>
+          ${p.subtitle ? `<p class="work-summary">${esc(p.subtitle)}</p>` : ''}
         </div>
       </a>`).join('');
 
-    const filters = disciplines.length > 1 ? `
-      <div class="filters" role="group" aria-label="Filter projects">
-        <button class="filter" aria-pressed="true" data-filter="*">All</button>
-        ${disciplines.map((d) => `<button class="filter" aria-pressed="false" data-filter="${esc(d)}">${esc(d)}</button>`).join('')}
-      </div>` : '';
-
     return `
-      <section class="wrap hero">
-        ${topline('Portfolio / Selected Works', esc(S.location) + ' — NY')}
-        <h1 class="hero-title" aria-label="${esc(S.name)}">
-          <span class="line"><span>${esc(S.firstName)}</span></span>
-          <span class="line"><span>${esc(S.lastName)}<span class="asterisk" aria-hidden="true">✳</span></span></span>
-        </h1>
-        <div class="hero-foot">
-          <div>
-            <p class="hand hero-note">design, objects, spaces &amp; everything in between ↘</p>
-            <p class="hero-intro">${esc(S.intro)}</p>
-            <a class="mono scroll-cue" href="#works" data-scroll="works">Selected works</a>
-          </div>
-          <dl class="hero-meta mono">
-            <div><dt>Practice</dt><dd>${esc(S.role)}</dd></div>
-            <div><dt>Disciplines</dt><dd>${disciplines.map(esc).join(' / ')}</dd></div>
-            <div><dt>Education</dt><dd>${esc(S.school)}</dd></div>
-            <div><dt>Based in</dt><dd>${esc(S.location)}</dd></div>
-          </dl>
-        </div>
+      <section class="wrap page-head">
+        ${topline('<a href="#/">Contents</a> / Work', `${pad(list.length)} project${list.length === 1 ? '' : 's'}`)}
+        <h1 class="page-title">${esc(title)}</h1>
       </section>
-
-      <section class="wrap works" id="works" aria-labelledby="worksTitle">
+      <section class="wrap works">
         <div class="section-head">
-          <h2 class="section-title" id="worksTitle">Selected Works<sup>(${pad(S.projects.length)})</sup></h2>
-          ${filters}
+          <p class="hand" style="font-size:32px;margin:0;transform:rotate(-2deg)">select a project to explore ↘</p>
+          <nav class="filters" aria-label="Filter by discipline">
+            ${tabs.map(([h, l, on]) => `<a class="filter" href="${h}"${on ? ' aria-current="page"' : ''}>${esc(l)}</a>`).join('')}
+          </nav>
         </div>
         <div class="work-grid">${cards}</div>
-      </section>
-
-      ${S.quote ? `
-      <section class="wrap quote-band reveal">
-        <span class="mono">A thought to design by</span>
-        <blockquote>${esc(S.quote.text)}</blockquote>
-        <div class="hand quote-author">— ${esc(S.quote.author)}</div>
-      </section>` : ''}
-
-      <div class="wrap">
-        <a class="cta reveal" href="#/contact">
-          <span class="mono">Say hello</span>
-          <p class="cta-title">Let’s make something <em>different</em> <span class="arrow">↗</span></p>
-        </a>
-      </div>`;
+      </section>`;
   }
 
   function viewProject(slug) {
@@ -105,58 +137,46 @@
     if (i < 0) return viewNotFound();
     const p = S.projects[i];
     const next = S.projects[(i + 1) % S.projects.length];
-    const [first, ...rest] = p.images;
-    const coverIsFirst = !p.cover && first;
-    const galleryImgs = coverIsFirst ? rest : p.images;
-    const gOffset = coverIsFirst ? 1 : 0;
+    const [cover, ...rest] = p.images;
 
-    const meta = [
-      ['Discipline', p.discipline],
-      ['Year', p.year],
-      ['Type', p.type],
-      ['Themes', (p.tags || []).join(', ')]
-    ].filter(([, v]) => v);
-
-    const gallery = galleryImgs.map((img, k) => `
-      <figure class="reveal ${img.wide ? 'wide' : ''}">
-        <button class="gallery-btn" data-lb-index="${k + gOffset}" aria-label="View larger: ${esc(img.caption || p.title)}">
-          <div class="frame" style="--tilt:${k % 2 ? '0.5deg' : '-0.5deg'}">
-            <div class="frame-img"><img src="${esc(img.src)}" alt="${esc(img.alt || img.caption || p.title)}" loading="lazy"></div>
+    const fig = (img, k, cls) => `
+      <figure class="${cls}">
+        <button class="gallery-btn" data-lb-index="${k}" aria-label="View larger: ${esc(img.caption || p.title)}">
+          <div class="frame" style="--tilt:${['-0.6deg', '0.6deg', '-0.4deg'][k % 3]}">
+            ${k === 0 ? tapeHtml(0) : ''}
+            <div class="frame-img"><img src="${esc(img.src)}" alt="${esc(img.alt || img.caption || p.title)}" ${k ? 'loading="lazy"' : ''}></div>
           </div>
         </button>
-        ${img.caption ? `<figcaption><span class="mono">Fig. ${pad(k + 1 + gOffset)}</span><span>${esc(img.caption)}</span></figcaption>` : ''}
-      </figure>`).join('');
+        ${img.caption ? `<figcaption><span class="mono">Fig. ${pad(k + 1)}</span><span>${esc(img.caption)}</span></figcaption>` : ''}
+      </figure>`;
 
     return `
-      <article data-paper="${esc(p.paper || '')}">
+      <article>
         <section class="wrap project-hero">
-          ${topline(`<span class="crumbs"><a href="#/">Work</a> / <span>${esc(p.discipline)}</span> / <span>${projectNum(i)}</span></span>`, esc(p.type || ''))}
-          <h1 class="project-title">${esc(p.title)}</h1>
-          ${p.note ? `<p class="hand project-note">${esc(p.note)} ↗</p>` : ''}
-          ${coverOf(p) ? `
-          <div class="project-cover">
-            <button class="gallery-btn" data-lb-index="0" aria-label="View larger: ${esc(p.title)}">
-              <div class="frame">${tapeHtml(0)}<div class="frame-img"><img src="${esc(coverOf(p))}" alt="${esc((first && first.caption) || p.title)}"></div></div>
-            </button>
+          ${topline(`<span class="crumbs"><a href="#/">Contents</a> / <a href="#/${discSlug(p.discipline)}">${esc(discName(p.discipline))}</a> / <span>${projectNum(p)}</span></span>`, 'Project ' + projectNum(p))}
+          ${p.keywords && p.keywords.length ? `
+          <div class="keywords">
+            <span class="mono keywords-label">Key words</span>
+            <ul>${p.keywords.map((k) => `<li class="mono">${esc(k)}</li>`).join('')}</ul>
           </div>` : ''}
+          <h1 class="project-title">${esc(p.title)}</h1>
+          ${p.subtitle ? `<p class="project-subtitle">${esc(p.subtitle)}</p>` : ''}
+          ${p.credit ? `<p class="mono project-credit">${p.credit.map(esc).join('<span class="sep">/</span>')}</p>` : ''}
+          ${p.note ? `<p class="hand project-note">${esc(p.note)} ↗</p>` : ''}
+          ${cover ? `<div class="project-cover">${fig(cover, 0, '')}</div>` : ''}
         </section>
 
         <section class="wrap project-body">
-          <dl class="meta-list mono reveal">
-            ${meta.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}
-          </dl>
-          <div class="reveal">
-            ${p.summary ? `<p class="project-lede">${esc(p.summary)}</p>` : ''}
-            <div class="project-text">${(p.description || []).map((t) => `<p>${esc(t)}</p>`).join('')}</div>
-          </div>
+          <h2 class="mono summary-label reveal">Project Summary</h2>
+          <div class="project-text reveal">${(p.summary || []).map((t) => `<p>${esc(t)}</p>`).join('')}</div>
         </section>
 
-        ${gallery ? `<section class="wrap gallery" aria-label="Project images">${gallery}</section>` : ''}
+        ${rest.length ? `<section class="wrap gallery" aria-label="Project images">${rest.map((img, k) => fig(img, k + 1, 'reveal')).join('')}</section>` : ''}
 
         ${S.projects.length > 1 ? `
         <div class="wrap">
           <a class="next-project" href="#/work/${esc(next.slug)}">
-            <span class="mono">Next project — ${esc(next.discipline)}</span>
+            <span class="mono">Next project — ${esc(discName(next.discipline))}</span>
             <p class="display">${esc(next.title)} <span class="arrow">→</span></p>
           </a>
         </div>` : ''}
@@ -165,18 +185,13 @@
 
   function viewAbout() {
     const a = S.about;
-    const portrait = S.portrait
-      ? `<img src="${esc(S.portrait)}" alt="Portrait of ${esc(S.name)}">`
-      : `<div class="portrait-empty" aria-hidden="true">Z<span>A</span>M</div>`;
     return `
       <section class="wrap page-head">
-        ${topline('About', 'Introduction')}
+        ${topline('<a href="#/">Contents</a> / About', 'Introduction')}
         <h1 class="page-title">About</h1>
       </section>
       <section class="wrap about-grid">
-        <div class="portrait reveal">
-          <div class="frame">${tapeHtml(1)}<div class="frame-img">${portrait}</div></div>
-        </div>
+        <div class="portrait reveal">${portraitFrame(1)}</div>
         <div class="reveal">
           <h2 class="about-statement">${esc(a.statement)}</h2>
           <p class="hand about-note">making things differently ↗</p>
@@ -184,60 +199,80 @@
           <dl class="details mono">
             ${a.details.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}
           </dl>
-          <p style="margin-top:36px"><a class="btn" href="#/cv">View CV →</a></p>
+          <p style="margin-top:36px"><a class="btn" href="#/experience">View experience →</a></p>
         </div>
       </section>`;
   }
 
-  function viewCV() {
-    const projectLink = (title) => {
-      const p = S.projects.find((x) => x.title === title);
-      return p ? `<a href="#/work/${esc(p.slug)}">${esc(title)}</a>` : esc(title);
-    };
-    const blocks = S.cv.map((b, i) => `
-      <div class="cv-block reveal">
-        <h2 class="mono"><span class="n">${pad(i + 1)}</span>${esc(b.heading)}</h2>
-        <ul class="cv-items">
-          ${b.items.map((it) => `
-            <li>
-              <span><span class="t">${projectLink(it.title)}</span>${it.note ? `<br><span class="m">${esc(it.note)}</span>` : ''}</span>
-              ${it.meta ? `<span class="mono m">${esc(it.meta)}</span>` : ''}
-            </li>`).join('')}
-        </ul>
-      </div>`).join('');
+  function viewExperience() {
+    const jobs = S.experience.map((x, i) => `
+      <li class="xp reveal">
+        <span class="mono xp-num">${pad(i + 1)}</span>
+        <div class="xp-main">
+          <h3 class="xp-org">${esc(x.org)}</h3>
+          ${x.role ? `<p class="xp-role">${esc(x.role)}</p>` : ''}
+          ${x.roles ? `<ul class="xp-roles">${x.roles.map((r) =>
+            `<li><span>${esc(r.title)}</span><span class="mono">${esc(r.date)}</span></li>`).join('')}</ul>` : ''}
+        </div>
+        <div class="mono xp-meta">
+          ${x.location ? `<span>${esc(x.location)}</span>` : ''}
+          ${x.date ? `<span>${esc(x.date)}</span>` : ''}
+        </div>
+      </li>`).join('');
+
+    const wins = (S.accomplishments || []).map((a) => `
+      <li class="award reveal">
+        <span class="award-star" aria-hidden="true">✳</span>
+        <div>
+          <h3 class="xp-org">${esc(a.title)}</h3>
+          <p class="mono award-date">${esc(a.date)}</p>
+          <p class="award-text">${esc(a.text)}</p>
+        </div>
+      </li>`).join('');
+
     return `
       <section class="wrap page-head">
-        ${topline('Curriculum Vitae', esc(S.name))}
-        <h1 class="page-title">CV</h1>
+        ${topline('<a href="#/">Contents</a> / Experience', esc(S.name))}
+        <h1 class="page-title">Experience</h1>
+        <p class="hand" style="font-size:32px;margin:18px 0 0;transform:rotate(-2deg)">always in progress…</p>
       </section>
-      <section class="wrap cv">
-        <div class="section-head" style="border:0;margin-bottom:24px">
-          <p class="hand" style="font-size:32px;margin:0;transform:rotate(-2deg)">always in progress…</p>
-          <div class="cv-actions">
-            ${S.cvPdf ? `<a class="btn solid" href="${esc(S.cvPdf)}" download>Download PDF ↓</a>` : ''}
-            <button class="btn" data-action="print">Print</button>
-          </div>
-        </div>
-        ${blocks}
+      <section class="wrap experience">
+        <div class="section-head"><h2 class="section-title">Work &amp; Volunteering</h2></div>
+        <ol class="xp-list">${jobs}</ol>
+        ${wins ? `
+        <div class="section-head" style="margin-top:clamp(64px,9vw,120px)"><h2 class="section-title">Accomplishments</h2></div>
+        <ul class="award-list">${wins}</ul>` : ''}
       </section>`;
   }
 
   function viewContact() {
     return `
       <section class="wrap page-head contact">
-        ${topline('Contact', 'Get in touch')}
-        <h1 class="contact-title">Let’s make<br>something<br><em>different.</em></h1>
-        <p class="hand contact-note">say hello ↘</p>
-        <div class="contact-list">
-          <div class="contact-row">
-            <a class="big" href="mailto:${esc(S.email)}">${esc(S.email)}</a>
-            <button class="btn copy-btn" data-copy="${esc(S.email)}">Copy</button>
+        ${topline('<a href="#/">Contents</a> / Contact', 'Get in touch')}
+        <div class="contact-grid">
+          <div>
+            <h1 class="contact-title">Let’s make<br>something<br><em>different.</em></h1>
+            <p class="hand contact-note">say hello ↘</p>
+            <p class="contact-alt">Prefer email? Write to<br><a href="mailto:${esc(S.email)}">${esc(S.email)}</a></p>
           </div>
-          ${S.links.map((l) => `
-          <a class="contact-row" href="${esc(l.href)}" target="_blank" rel="noopener noreferrer">
-            <span class="big" style="font:400 clamp(26px,4.4vw,60px)/1.1 var(--serif)">${esc(l.label)}</span>
-            <span class="arrow" aria-hidden="true">↗</span>
-          </a>`).join('')}
+          <form class="contact-form" id="contactForm" novalidate>
+            <h2 class="mono form-title">Contact request</h2>
+            <label class="field">
+              <span class="mono">Your name</span>
+              <input name="name" type="text" autocomplete="name" required>
+            </label>
+            <label class="field">
+              <span class="mono">Email address</span>
+              <input name="email" type="email" autocomplete="email" inputmode="email" required>
+            </label>
+            <label class="field">
+              <span class="mono">Inquiry</span>
+              <textarea name="message" rows="6" required></textarea>
+            </label>
+            <input type="text" name="_honey" class="honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <p class="form-status" id="formStatus" role="status"></p>
+            <button class="btn solid" type="submit">Send request →</button>
+          </form>
         </div>
       </section>`;
   }
@@ -248,7 +283,7 @@
         ${topline('404', 'Page not found')}
         <h1 class="page-title">Lost?</h1>
         <p class="hand" style="font-size:36px;transform:rotate(-2deg)">this page wandered off ↘</p>
-        <a class="btn" href="#/">Back to the work →</a>
+        <a class="btn" href="#/">Back to contents →</a>
       </section>`;
   }
 
@@ -256,8 +291,8 @@
 
   function parse() {
     const h = location.hash.replace(/^#\/?/, '');
-    // Old single-page links (#about, #armor, …) keep working.
-    const legacy = { home: '', contents: '', clothing: '', architecture: 'work/sculptors-rest', armor: 'work/armor', shoulders: 'work/shoulders', resume: 'cv' };
+    // Old links (#about, #armor, #cv, …) keep working.
+    const legacy = { home: '', contents: '', works: 'work', armor: 'work/armor', shoulders: 'work/shoulders', resume: 'experience', cv: 'experience' };
     const path = h in legacy ? legacy[h] : h;
     const [a, b] = path.split('/');
     return { a: a || 'home', b };
@@ -267,30 +302,33 @@
   function render() {
     const { a, b } = parse();
     const route = a + '/' + (b || '');
-    let html, title, paper = '';
+    if (route === lastRoute) return;
+    lastRoute = route;
 
-    if (a === 'home' || a === 'works') { html = viewHome(); title = ''; }
+    const disc = disciplines.find((d) => discSlug(d) === a);
+    let html, title, paper = '', nav = a;
+
+    if (a === 'home') { html = viewHome(); title = ''; }
     else if (a === 'work' && b) {
       html = viewProject(b);
       const p = S.projects.find((x) => x.slug === b);
       title = p ? p.title : 'Not found';
       paper = p ? p.paper || '' : '';
+      nav = 'work';
     }
+    else if (a === 'work') { html = viewWork(); title = 'Work'; }
+    else if (disc) { html = viewWork(disc); title = discName(disc); nav = 'work'; }
     else if (a === 'about') { html = viewAbout(); title = 'About'; }
-    else if (a === 'cv') { html = viewCV(); title = 'CV'; }
+    else if (a === 'experience') { html = viewExperience(); title = 'Experience'; }
     else if (a === 'contact') { html = viewContact(); title = 'Contact'; }
     else { html = viewNotFound(); title = 'Not found'; }
-
-    // Skip re-render when only an in-page anchor changed.
-    if (route === lastRoute) return;
-    lastRoute = route;
 
     app.innerHTML = `<div class="view">${html}</div>`;
     document.title = title ? `${title} — ${S.name}` : `${S.name} — Portfolio`;
     document.body.className = paper ? 'paper-' + paper : '';
 
     document.querySelectorAll('[data-nav]').forEach((el) => {
-      const on = el.dataset.nav === (a === 'work' || a === 'works' ? 'home' : a);
+      const on = el.dataset.nav === nav;
       el.classList.toggle('active', on);
       on ? el.setAttribute('aria-current', 'page') : el.removeAttribute('aria-current');
     });
@@ -321,42 +359,67 @@
   }
 
   function bindView() {
-    app.querySelectorAll('[data-filter]').forEach((btn) => btn.addEventListener('click', () => {
-      const f = btn.dataset.filter;
-      app.querySelectorAll('[data-filter]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-      app.querySelectorAll('.work-card').forEach((c) => {
-        c.hidden = f !== '*' && c.dataset.discipline !== f;
-        c.classList.add('in');
-      });
-    }));
-
-    app.querySelectorAll('[data-scroll]').forEach((a) => a.addEventListener('click', (e) => {
-      e.preventDefault();
-      document.getElementById(a.dataset.scroll).scrollIntoView({ behavior: 'smooth' });
-    }));
-
-    app.querySelectorAll('[data-copy]').forEach((btn) => btn.addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(btn.dataset.copy); toast('Email copied'); }
-      catch { location.href = 'mailto:' + btn.dataset.copy; }
-    }));
-
-    app.querySelectorAll('[data-action="print"]').forEach((b) => b.addEventListener('click', () => window.print()));
-
     app.querySelectorAll('[data-lb-index]').forEach((b) => b.addEventListener('click', () => {
       const p = S.projects.find((x) => x.slug === parse().b);
-      if (!p) return;
-      const list = p.cover ? [{ src: p.cover, caption: p.title }, ...p.images] : p.images;
-      openLightbox(list, +b.dataset.lbIndex);
+      if (p) openLightbox(p.images, +b.dataset.lbIndex);
     }));
+
+    const form = document.getElementById('contactForm');
+    if (form) form.addEventListener('submit', submitContact);
   }
 
-  let toastEl;
-  function toast(msg) {
-    if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast mono'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
-    toastEl.textContent = msg;
-    toastEl.classList.add('show');
-    clearTimeout(toast.t);
-    toast.t = setTimeout(() => toastEl.classList.remove('show'), 1800);
+  /* ---------- contact form ----------
+     GitHub Pages can't receive form posts, so messages are relayed by
+     FormSubmit (formsubmit.co) to S.email. The very first message triggers
+     a one-time activation email to that inbox — click the link in it.
+     If the service is unreachable, the visitor's mail app opens instead. */
+
+  async function submitContact(e) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const status = document.getElementById('formStatus');
+    const btn = form.querySelector('button[type="submit"]');
+    const data = Object.fromEntries(new FormData(form));
+
+    form.querySelectorAll('[required]').forEach((f) => f.classList.toggle('invalid', !f.checkValidity()));
+    if (!form.checkValidity()) {
+      status.textContent = 'Please fill in your name, a valid email and your inquiry.';
+      status.className = 'form-status error';
+      form.querySelector('.invalid').focus();
+      return;
+    }
+    if (data._honey) return; // bot
+
+    btn.disabled = true;
+    status.textContent = 'Sending…';
+    status.className = 'form-status';
+
+    try {
+      const res = await fetch('https://formsubmit.co/ajax/' + encodeURIComponent(S.email), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          message: data.message,
+          _replyto: data.email,
+          _subject: `Portfolio inquiry from ${data.name}`,
+          _template: 'table',
+          _captcha: 'false'
+        })
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || String(json.success) === 'false') throw new Error(json.message || res.status);
+      form.reset();
+      status.textContent = 'Thank you — your message was sent. I’ll be in touch soon.';
+      status.className = 'form-status ok';
+    } catch (err) {
+      const body = `${data.message}\n\n— ${data.name} (${data.email})`;
+      status.innerHTML = `Couldn’t send just now. <a href="mailto:${esc(S.email)}?subject=${encodeURIComponent('Portfolio inquiry from ' + data.name)}&body=${encodeURIComponent(body)}">Send it by email instead →</a>`;
+      status.className = 'form-status error';
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   /* ---------- lightbox ---------- */
@@ -427,8 +490,7 @@
     document.body.style.overflow = '';
   }
   menuBtn.addEventListener('click', () => {
-    const open = mobileMenu.hidden;
-    if (!open) return closeMenu();
+    if (!mobileMenu.hidden) return closeMenu();
     mobileMenu.hidden = false;
     menuBtn.setAttribute('aria-expanded', 'true');
     menuBtn.querySelector('.menu-btn-label').textContent = 'Close';
@@ -447,8 +509,9 @@
 
   document.getElementById('year').textContent = new Date().getFullYear();
   document.getElementById('footerLinks').innerHTML =
-    `<a href="mailto:${esc(S.email)}">Email</a>` +
-    S.links.map((l) => `<a href="${esc(l.href)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`).join('');
+    `<a href="mailto:${esc(S.email)}">${esc(S.email)}</a>` +
+    S.links.map((l) => `<a href="${esc(l.href)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`).join('') +
+    `<a href="#/contact">Contact form</a>`;
 
   window.addEventListener('hashchange', render);
   render();
