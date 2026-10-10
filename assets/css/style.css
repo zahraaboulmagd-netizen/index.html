@@ -176,7 +176,7 @@ button { font: inherit; color: inherit; cursor: pointer; background: none; borde
 
 main { flex: 1; }
 main:focus, main:focus-visible { outline: none; }
-.view { animation: viewIn .7s var(--ease) both; }
+.view { animation: viewIn .7s var(--ease) backwards; }
 @keyframes viewIn { from { opacity: 0; transform: translateY(14px); } }
 
 .reveal { opacity: 0; transform: translateY(26px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
@@ -478,6 +478,22 @@ main:focus, main:focus-visible { outline: none; }
 .contact-form .btn { justify-self: start; }
 
 @media (max-width: 860px) { .contact-grid { grid-template-columns: 1fr; } }
+
+.egg-trigger { display: block; text-align: left; cursor: default; }
+.egg {
+  position: fixed; inset: 0; z-index: 65; display: grid; place-items: center; padding: var(--gutter);
+  background: rgba(28, 24, 21, .55); cursor: pointer; animation: fade .3s ease;
+}
+.egg[hidden] { display: none; }
+.egg-card {
+  position: relative; margin: 0; width: min(360px, 86vw, 56vh); padding: 14px 14px 18px;
+  background: var(--paper-light); box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .5);
+  animation: eggIn .6s var(--ease) both;
+}
+.egg-card img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.egg-card figcaption { font-size: clamp(19px, 2.8vh, 24px); text-align: center; margin-top: 12px; }
+@keyframes eggIn { from { opacity: 0; transform: translateY(40px) rotate(-12deg) scale(.8); } to { transform: rotate(-4deg); } }
+.egg-card { transform: rotate(-4deg); }
 
 /* ---------- 404 ---------- */
 .lost { padding-block: clamp(80px, 14vw, 200px); }

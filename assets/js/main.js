@@ -252,7 +252,7 @@
         <div class="contact-grid">
           <div>
             <h1 class="contact-title">Let’s make<br>something<br><em>different.</em></h1>
-            <p class="hand contact-note">say hello ↘</p>
+            <button class="hand contact-note egg-trigger" type="button" data-egg>say hello ↘</button>
             <p class="contact-alt">Prefer email? Write to<br><a href="mailto:${esc(S.email)}">${esc(S.email)}</a></p>
           </div>
           <form class="contact-form" id="contactForm" novalidate>
@@ -273,6 +273,13 @@
             <p class="form-status" id="formStatus" role="status"></p>
             <button class="btn solid" type="submit">Send request →</button>
           </form>
+        </div>
+        <div class="egg" id="egg" hidden>
+          <figure class="egg-card">
+            <span class="tape tc"></span>
+            <img src="assets/img/misc/zzz.jpg" alt="The artist, asleep">
+            <figcaption class="hand">the artist, mid creative process — replies may be delayed ✳ zzz</figcaption>
+          </figure>
         </div>
       </section>`;
   }
@@ -363,6 +370,14 @@
       const p = S.projects.find((x) => x.slug === parse().b);
       if (p) openLightbox(p.images, +b.dataset.lbIndex);
     }));
+
+    // Easter egg: tap "say hello" on the contact page.
+    const egg = document.getElementById('egg');
+    const eggBtn = app.querySelector('[data-egg]');
+    if (egg && eggBtn) {
+      eggBtn.addEventListener('click', () => { egg.hidden = false; });
+      egg.addEventListener('click', () => { egg.hidden = true; eggBtn.focus(); });
+    }
 
     const form = document.getElementById('contactForm');
     if (form) form.addEventListener('submit', submitContact);
@@ -479,6 +494,7 @@
         f[(idx + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
       }
     } else if (e.key === 'Escape' && !mobileMenu.hidden) closeMenu();
+    else if (e.key === 'Escape' && document.getElementById('egg')) document.getElementById('egg').hidden = true;
   });
 
   /* ---------- menu & header ---------- */
