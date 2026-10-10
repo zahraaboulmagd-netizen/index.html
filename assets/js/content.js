@@ -8,7 +8,7 @@
 
   Project photos (3 per project):
     1. Put image files in  assets/img/<project-folder>/
-    2. Replace the placeholder .svg paths in that project's `images` list:
+    2. List them in that project's `images` (3 per project):
          { src: 'assets/img/armor/look-01.jpg', caption: 'Look 01, front' }
     3. The first image is the large cover; images 2 and 3 sit side by side.
 
@@ -30,7 +30,7 @@ window.SITE = {
   ],
 
   // Photo of yourself. Leave '' to show the monogram placeholder.
-  portrait: '',
+  portrait: 'assets/img/portrait.jpg',
 
   intro:
     'Egyptian-American multidisciplinary designer working between clothing, ' +
@@ -129,9 +129,9 @@ window.SITE = {
         'bringing the imagined world to life.'
       ],
       images: [
-        { src: 'assets/img/armor/plate-01.svg', caption: 'Image 01 — replace with photo' },
-        { src: 'assets/img/armor/plate-02.svg', caption: 'Image 02 — replace with photo' },
-        { src: 'assets/img/armor/plate-03.svg', caption: 'Image 03 — replace with photo' }
+        { src: 'assets/img/armor/01.jpg', caption: 'Mood board' },
+        { src: 'assets/img/armor/02.jpg', caption: 'Final piece' },
+        { src: 'assets/img/armor/03.jpg', caption: 'Final piece' }
       ]
     },
     {
@@ -153,9 +153,9 @@ window.SITE = {
         'versatility and reducing the need for new clothing.'
       ],
       images: [
-        { src: 'assets/img/shoulders/plate-01.svg', caption: 'Image 01 — replace with photo' },
-        { src: 'assets/img/shoulders/plate-02.svg', caption: 'Image 02 — replace with photo' },
-        { src: 'assets/img/shoulders/plate-03.svg', caption: 'Image 03 — replace with photo' }
+        { src: 'assets/img/shoulders/01.jpg', caption: 'Front, on the dress form' },
+        { src: 'assets/img/shoulders/02.jpg', caption: 'Back, on the dress form' },
+        { src: 'assets/img/shoulders/03.jpg', caption: 'Worn' }
       ]
     },
     {
@@ -178,9 +178,9 @@ window.SITE = {
         'design while preserving its original character and visual language.'
       ],
       images: [
-        { src: 'assets/img/sculptors-rest/plate-01.svg', caption: 'Image 01 — replace with photo' },
-        { src: 'assets/img/sculptors-rest/plate-02.svg', caption: 'Image 02 — replace with photo' },
-        { src: 'assets/img/sculptors-rest/plate-03.svg', caption: 'Image 03 — replace with photo' }
+        { src: 'assets/img/sculptors-rest/01.jpg', caption: '1:20 scale model' },
+        { src: 'assets/img/sculptors-rest/02.jpg', caption: '1:20 scale model, interior' },
+        { src: 'assets/img/sculptors-rest/03.jpg', caption: 'Conceptual drawing' }
       ]
     }
   ]
